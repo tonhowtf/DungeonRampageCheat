@@ -5,11 +5,11 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![.NET](https://img.shields.io/badge/.NET-8.0-512BD4)](https://dotnet.microsoft.com/)
 [![Platform](https://img.shields.io/badge/Platform-Windows-0078D4)](https://www.microsoft.com/windows)
-[![Release](https://img.shields.io/github/v/release/tonhowtf/dungeon-rampage-cheat)](https://github.com/tonhowtf/dungeon-rampage-cheat/releases)
+[![Release](https://img.shields.io/github/v/release/tonhowtf/DungeonRampageCheat)](https://github.com/tonhowtf/DungeonRampageCheat/releases/latest)
 
-**Advanced Testing Tool for Dungeon Rampage Early Access**
+**Real-time memory manipulation framework for Dungeon Rampage Early Access**
 
-[📥 Download](https://github.com/tonhowtf/dungeon-rampage-cheat/releases) • [📖 Documentation](#-table-of-contents) • [💬 Discord](#-contact)
+[📥 Download](https://github.com/tonhowtf/DungeonRampageCheat/releases/latest) • [📖 Documentation](#-table-of-contents) • [💬 Discord](#-contact)
 
 ![Dungeon Rampage Cheat Screenshot](screenshots/main.png)
 
@@ -43,14 +43,14 @@
 
 ## 🎯 About
 
-**Dungeon Rampage Cheat Tool** is a testing tool developed to assist testers of Dungeon Rampage Early Access. This project offers advanced real-time memory modification features for quality testing and gameplay balancing.
+**Dungeon Rampage Cheat Tool** is a real-time memory manipulation framework developed for Dungeon Rampage Early Access testing. This project offers advanced features for quality testing and gameplay balancing through process injection, pattern scanning, and memory patching techniques.
 
 ### ✨ Highlights
 
 - 🗺️ **WallHack** - Walk through walls on all maps
-- 🚀 **Speed Hack** - Increase movement speed
+- 🚀 **Speed Hack** - Increase movement speed (Ranger only)
 - 🔭 **Zoom Hack** - Adjust camera zoom
-- 🎮 **Modern Interface** - Intuitive and responsive UI
+- 🎮 **Modern Interface** - Intuitive and responsive WPF UI
 - 🔧 **Open Source** - 100% open and auditable code
 
 ---
@@ -77,20 +77,14 @@ Allows passing through obstacles on all available maps:
 3. Enable/disable individually or all at once
 4. Restore when needed
 
-### ⚡ Speed Hack
+### ⚡ Speed Hack (Ranger Only)
 
-Two speed modes available:
+Increases overall movement speed for Ranger class:
 
-#### 🎯 Arrow Speed (Ranger Only)
-- Increases projectile speed (arrows)
-- Ranger class exclusive
-- 24-byte pattern
-
-#### ⚡ Complete Speed (All Classes)
-- Increases overall movement speed
-- Works with all classes
-- Modifies all speed addresses
-- 16-byte pattern
+- 🎯 **Pattern:** 16-byte memory signature
+- ⚡ **Effect:** Faster movement and projectile speed
+- 🔄 **Toggle:** Enable/Disable on demand
+- 📊 **Real-time:** Instant activation
 
 ### 🔭 Zoom Hack (Camera)
 
@@ -107,8 +101,8 @@ Full control over camera zoom:
 
 ### Option 1: Binary Download (Recommended)
 
-1. Go to [Releases](https://github.com/tonhowtf/dungeon-rampage-cheat/releases)
-2. Download latest version (`DungeonRampageCheat-v1.0.0.zip`)
+1. Go to [**Releases**](https://github.com/tonhowtf/DungeonRampageCheat/releases/latest)
+2. Download latest version (`DungeonRampageCheat-v1.0.0-win-x64.zip`)
 3. Extract ZIP file
 4. Run `DungeonRampageCheat.exe`
 
@@ -145,30 +139,22 @@ See [Build from Source](#-build-from-source) section
 2. Wait for complete scan
 3. Enable desired maps individually
    OR
-4. Use "🎯 Enable All Maps" to enable all
+4. Use "✅ Apply All" to enable all
 ```
 
-### Step 4: Speed Hack
-
-#### Arrow Speed (Ranger):
+### Step 4: Speed Hack (Ranger Only)
 ```
 1. Play as Ranger class
-2. Go to "⚡ Misc" tab, "Arrow Speed" section
-3. Click "🔍 Scan"
-4. Click "▶️ Enable"
-```
-
-#### Complete Speed (All):
-```
-1. Go to "⚡ Misc" tab, "Complete Speed" section
-2. Click "🔍 Scan"
-3. Click "▶️ Enable"
+2. Go to "⚡ Misc" tab
+3. Click "🔍 Scan Speed"
+4. Click "▶️ Enable Speed"
+5. Toggle on/off as needed
 ```
 
 ### Step 5: Zoom Hack
 ```
 1. Make sure you're in-game (not menu)
-2. Go to "⚡ Misc" tab, "Zoom Hack" section
+2. Go to "⚡ Misc" tab
 3. Click "🔍 Scan Zoom"
 4. Use slider or presets to adjust
 5. Click "↩️ Restore" to return to normal
@@ -184,34 +170,25 @@ See [Build from Source](#-build-from-source) section
 - [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
 - Windows 10/11
 
-### Step by Step in Visual Studio
+### Step by Step
 
 #### 1. Clone Repository
 ```bash
-git clone https://github.com/tonhowtf/dungeon-rampage-cheat.git
-cd dungeon-rampage-cheat
+git clone https://github.com/tonhowtf/DungeonRampageCheat.git
+cd DungeonRampageCheat
 ```
 
-#### 2. Open in Visual Studio
-```
-1. Open Visual Studio 2022
-2. File → Open → Project/Solution
-3. Select "DungeonRampageCheat.sln"
+#### 2. Restore Dependencies
+```bash
+dotnet restore
 ```
 
-#### 3. Restore Packages
-```
-1. Solution Explorer → Right-click project
-2. "Restore NuGet Packages"
-```
-
-#### 4. Build for Debug
-```
-1. Build → Build Solution (Ctrl+Shift+B)
-2. Executable at: bin/Debug/net8.0-windows/DungeonRampageCheat.exe
+#### 3. Build for Debug
+```bash
+dotnet build -c Debug
 ```
 
-#### 5. Build for Release (Final Binary)
+#### 4. Build for Release (Single File)
 ```bash
 dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
 ```
@@ -219,22 +196,6 @@ dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=
 Executable will be at:
 ```
 bin/Release/net8.0-windows/win-x64/publish/DungeonRampageCheat.exe
-```
-
-### Via Command Line (CMD/PowerShell)
-```bash
-# Clone repository
-git clone https://github.com/tonhowtf/dungeon-rampage-cheat.git
-cd dungeon-rampage-cheat
-
-# Restore dependencies
-dotnet restore
-
-# Build (Debug)
-dotnet build -c Debug
-
-# Build (Release - Single File)
-dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true
 ```
 
 ---
@@ -308,9 +269,9 @@ Contact for:
 - ❓ Ask questions
 
 ### GitHub
-- 🌟 [Leave a Star](https://github.com/tonhowtf/dungeon-rampage-cheat)
-- 🐛 [Open an Issue](https://github.com/tonhowtf/dungeon-rampage-cheat/issues)
-- 🔀 [Fork](https://github.com/tonhowtf/dungeon-rampage-cheat/fork)
+- 🌟 [Leave a Star](https://github.com/tonhowtf/DungeonRampageCheat)
+- 🐛 [Open an Issue](https://github.com/tonhowtf/DungeonRampageCheat/issues)
+- 🔀 [Fork](https://github.com/tonhowtf/DungeonRampageCheat/fork)
 
 ---
 
@@ -331,8 +292,7 @@ This project is licensed under the **MIT License** - see [LICENSE](LICENSE) file
 ## 📊 Project Status
 ```
 ✅ WallHack - Functional
-✅ Speed Hack (Arrow) - Functional
-✅ Speed Hack (Complete) - Functional
+✅ Speed Hack (Ranger) - Functional
 ✅ Zoom Hack - Functional
 ⏳ Ultimate Hack - In Development
 ```
@@ -357,14 +317,14 @@ This project is licensed under the **MIT License** - see [LICENSE](LICENSE) file
 
 ## 🎯 Sobre
 
-**Dungeon Rampage Cheat Tool** é uma ferramenta de teste desenvolvida para auxiliar testadores do jogo Dungeon Rampage Early Access. Este projeto oferece recursos avançados de modificação de memória em tempo real para testes de qualidade e balanceamento de gameplay.
+**Dungeon Rampage Cheat Tool** é um framework de manipulação de memória em tempo real desenvolvido para testes do Dungeon Rampage Early Access. Este projeto oferece recursos avançados para testes de qualidade e balanceamento de gameplay através de técnicas de injeção de processo, escaneamento de padrões e modificação de memória.
 
 ### ✨ Destaques
 
 - 🗺️ **WallHack** - Atravesse paredes em todos os mapas
-- 🚀 **Speed Hack** - Aumente a velocidade de movimento
+- 🚀 **Speed Hack** - Aumente a velocidade de movimento (Somente Ranger)
 - 🔭 **Zoom Hack** - Ajuste o zoom da câmera
-- 🎮 **Interface Moderna** - UI intuitiva e responsiva
+- 🎮 **Interface Moderna** - UI WPF intuitiva e responsiva
 - 🔧 **Open Source** - Código 100% aberto e auditável
 
 ---
@@ -391,20 +351,14 @@ Permite passar através de obstáculos em todos os mapas disponíveis:
 3. Ative/desative individualmente ou todos de uma vez
 4. Restaure quando necessário
 
-### ⚡ Speed Hack (Velocidade)
+### ⚡ Speed Hack (Somente Ranger)
 
-Dois modos de velocidade disponíveis:
+Aumenta a velocidade de movimento geral da classe Ranger:
 
-#### 🎯 Arrow Speed (Apenas Ranger)
-- Aumenta velocidade de projéteis (flechas)
-- Exclusivo para classe Ranger
-- Padrão de 24 bytes
-
-#### ⚡ Complete Speed (Todas as Classes)
-- Aumenta velocidade de movimento geral
-- Funciona com todas as classes
-- Modifica todos os endereços de velocidade
-- Padrão de 16 bytes
+- 🎯 **Padrão:** Assinatura de memória de 16 bytes
+- ⚡ **Efeito:** Movimento e projéteis mais rápidos
+- 🔄 **Alternância:** Ativar/Desativar sob demanda
+- 📊 **Tempo real:** Ativação instantânea
 
 ### 🔭 Zoom Hack (Câmera)
 
@@ -421,8 +375,8 @@ Controle total sobre o zoom da câmera:
 
 ### Opção 1: Download Binário (Recomendado)
 
-1. Acesse a página de [Releases](https://github.com/tonhowtf/dungeon-rampage-cheat/releases)
-2. Baixe a versão mais recente (`DungeonRampageCheat-v1.0.0.zip`)
+1. Acesse a página de [**Releases**](https://github.com/tonhowtf/DungeonRampageCheat/releases/latest)
+2. Baixe a versão mais recente (`DungeonRampageCheat-v1.0.0-win-x64.zip`)
 3. Extraia o arquivo ZIP
 4. Execute `DungeonRampageCheat.exe`
 
@@ -459,30 +413,22 @@ Veja a seção [Compilar do Código Fonte](#-compilar-do-código-fonte-1)
 2. Aguarde a varredura completa
 3. Ative os mapas desejados individualmente
    OU
-4. Use "🎯 Enable All Maps" para ativar todos
+4. Use "✅ Apply All" para ativar todos
 ```
 
-### Passo 4: Speed Hack
-
-#### Arrow Speed (Ranger):
+### Passo 4: Speed Hack (Somente Ranger)
 ```
 1. Entre no jogo com classe Ranger
-2. Na aba "⚡ Misc", seção "Arrow Speed"
-3. Clique em "🔍 Scan"
-4. Clique em "▶️ Enable"
-```
-
-#### Complete Speed (Todas):
-```
-1. Na aba "⚡ Misc", seção "Complete Speed"
-2. Clique em "🔍 Scan"
-3. Clique em "▶️ Enable"
+2. Na aba "⚡ Misc"
+3. Clique em "🔍 Scan Speed"
+4. Clique em "▶️ Enable Speed"
+5. Alterne ligado/desligado conforme necessário
 ```
 
 ### Passo 5: Zoom Hack
 ```
 1. Certifique-se de estar no jogo (não no menu)
-2. Na aba "⚡ Misc", seção "Zoom Hack"
+2. Na aba "⚡ Misc"
 3. Clique em "🔍 Scan Zoom"
 4. Use o slider ou presets para ajustar
 5. Clique em "↩️ Restore" para voltar ao normal
@@ -498,34 +444,25 @@ Veja a seção [Compilar do Código Fonte](#-compilar-do-código-fonte-1)
 - [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
 - Windows 10/11
 
-### Passo a Passo no Visual Studio
+### Passo a Passo
 
 #### 1. Clonar o Repositório
 ```bash
-git clone https://github.com/tonhowtf/dungeon-rampage-cheat.git
-cd dungeon-rampage-cheat
+git clone https://github.com/tonhowtf/DungeonRampageCheat.git
+cd DungeonRampageCheat
 ```
 
-#### 2. Abrir no Visual Studio
-```
-1. Abra Visual Studio 2022
-2. File → Open → Project/Solution
-3. Selecione "DungeonRampageCheat.sln"
+#### 2. Restaurar Dependências
+```bash
+dotnet restore
 ```
 
-#### 3. Restaurar Pacotes
-```
-1. Solution Explorer → Clique direito no projeto
-2. "Restore NuGet Packages"
-```
-
-#### 4. Compilar para Debug
-```
-1. Build → Build Solution (Ctrl+Shift+B)
-2. Executável em: bin/Debug/net8.0-windows/DungeonRampageCheat.exe
+#### 3. Compilar para Debug
+```bash
+dotnet build -c Debug
 ```
 
-#### 5. Compilar para Release (Binário Final)
+#### 4. Compilar para Release (Arquivo Único)
 ```bash
 dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
 ```
@@ -533,22 +470,6 @@ dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=
 O executável estará em:
 ```
 bin/Release/net8.0-windows/win-x64/publish/DungeonRampageCheat.exe
-```
-
-### Via Linha de Comando (CMD/PowerShell)
-```bash
-# Clone o repositório
-git clone https://github.com/tonhowtf/dungeon-rampage-cheat.git
-cd dungeon-rampage-cheat
-
-# Restaure as dependências
-dotnet restore
-
-# Compile (Debug)
-dotnet build -c Debug
-
-# Compile (Release - Single File)
-dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true
 ```
 
 ---
@@ -622,9 +543,9 @@ Entre em contato para:
 - ❓ Tirar dúvidas
 
 ### GitHub
-- 🌟 [Deixe uma Star](https://github.com/tonhowtf/dungeon-rampage-cheat)
-- 🐛 [Abra uma Issue](https://github.com/tonhowtf/dungeon-rampage-cheat/issues)
-- 🔀 [Faça um Fork](https://github.com/tonhowtf/dungeon-rampage-cheat/fork)
+- 🌟 [Deixe uma Star](https://github.com/tonhowtf/DungeonRampageCheat)
+- 🐛 [Abra uma Issue](https://github.com/tonhowtf/DungeonRampageCheat/issues)
+- 🔀 [Faça um Fork](https://github.com/tonhowtf/DungeonRampageCheat/fork)
 
 ---
 
@@ -645,8 +566,7 @@ Este projeto está licenciado sob a **MIT License** - veja o arquivo [LICENSE](L
 ## 📊 Status do Projeto
 ```
 ✅ WallHack - Funcional
-✅ Speed Hack (Arrow) - Funcional
-✅ Speed Hack (Complete) - Funcional
+✅ Speed Hack (Ranger) - Funcional
 ✅ Zoom Hack - Funcional
 ⏳ Ultimate Hack - Em Desenvolvimento
 ```
@@ -671,14 +591,14 @@ Este projeto está licenciado sob a **MIT License** - veja o arquivo [LICENSE](L
 
 ## 🎯 Hakkında
 
-**Dungeon Rampage Cheat Tool**, Dungeon Rampage Early Access oyununun test uzmanlarına yardımcı olmak için geliştirilmiş bir test aracıdır. Bu proje, kalite testi ve oyun dengeleme için gerçek zamanlı gelişmiş bellek değiştirme özellikleri sunar.
+**Dungeon Rampage Cheat Tool**, Dungeon Rampage Early Access testleri için geliştirilmiş gerçek zamanlı bellek manipülasyon çerçevesidir. Bu proje, process injection, pattern scanning ve memory patching teknikleri ile kalite testi ve oyun dengeleme için gelişmiş özellikler sunar.
 
 ### ✨ Öne Çıkanlar
 
 - 🗺️ **WallHack** - Tüm haritalarda duvarlardan geçin
-- 🚀 **Speed Hack** - Hareket hızını artırın
+- 🚀 **Speed Hack** - Hareket hızını artırın (Sadece Ranger)
 - 🔭 **Zoom Hack** - Kamera yakınlaştırmasını ayarlayın
-- 🎮 **Modern Arayüz** - Sezgisel ve duyarlı kullanıcı arayüzü
+- 🎮 **Modern Arayüz** - Sezgisel ve duyarlı WPF kullanıcı arayüzü
 - 🔧 **Açık Kaynak** - %100 açık ve denetlenebilir kod
 
 ---
@@ -705,20 +625,14 @@ Tüm mevcut haritalarda engellerden geçmeye izin verir:
 3. Tek tek veya hepsini birden etkinleştirin/devre dışı bırakın
 4. Gerektiğinde geri yükleyin
 
-### ⚡ Speed Hack (Hız Hilesi)
+### ⚡ Speed Hack (Sadece Ranger)
 
-İki hız modu mevcuttur:
+Ranger sınıfı için genel hareket hızını artırır:
 
-#### 🎯 Arrow Speed (Sadece Ranger)
-- Mermi hızını artırır (oklar)
-- Sadece Ranger sınıfına özel
-- 24 baytlık desen
-
-#### ⚡ Complete Speed (Tüm Sınıflar)
-- Genel hareket hızını artırır
-- Tüm sınıflarla çalışır
-- Tüm hız adreslerini değiştirir
-- 16 baytlık desen
+- 🎯 **Desen:** 16 baytlık bellek imzası
+- ⚡ **Etki:** Daha hızlı hareket ve mermi hızı
+- 🔄 **Geçiş:** İsteğe bağlı Etkinleştir/Devre Dışı Bırak
+- 📊 **Gerçek zamanlı:** Anında aktivasyon
 
 ### 🔭 Zoom Hack (Kamera)
 
@@ -735,8 +649,8 @@ Kamera yakınlaştırması üzerinde tam kontrol:
 
 ### Seçenek 1: İkili Dosya İndirme (Önerilen)
 
-1. [Releases](https://github.com/tonhowtf/dungeon-rampage-cheat/releases) sayfasına gidin
-2. En son sürümü indirin (`DungeonRampageCheat-v1.0.0.zip`)
+1. [**Releases**](https://github.com/tonhowtf/DungeonRampageCheat/releases/latest) sayfasına gidin
+2. En son sürümü indirin (`DungeonRampageCheat-v1.0.0-win-x64.zip`)
 3. ZIP dosyasını çıkarın
 4. `DungeonRampageCheat.exe` dosyasını çalıştırın
 
@@ -773,30 +687,22 @@ Kamera yakınlaştırması üzerinde tam kontrol:
 2. Tam taramayı bekleyin
 3. İstediğiniz haritaları tek tek etkinleştirin
    VEYA
-4. Tümünü etkinleştirmek için "🎯 Enable All Maps" kullanın
+4. Tümünü etkinleştirmek için "✅ Apply All" kullanın
 ```
 
-### Adım 4: Speed Hack
-
-#### Arrow Speed (Ranger):
+### Adım 4: Speed Hack (Sadece Ranger)
 ```
 1. Ranger sınıfıyla oynayın
-2. "⚡ Misc" sekmesine gidin, "Arrow Speed" bölümü
-3. "🔍 Scan" düğmesine tıklayın
-4. "▶️ Enable" düğmesine tıklayın
-```
-
-#### Complete Speed (Tümü):
-```
-1. "⚡ Misc" sekmesine gidin, "Complete Speed" bölümü
-2. "🔍 Scan" düğmesine tıklayın
-3. "▶️ Enable" düğmesine tıklayın
+2. "⚡ Misc" sekmesine gidin
+3. "🔍 Scan Speed" düğmesine tıklayın
+4. "▶️ Enable Speed" düğmesine tıklayın
+5. Gerektiğinde açıp kapatın
 ```
 
 ### Adım 5: Zoom Hack
 ```
 1. Oyunda olduğunuzdan emin olun (menüde değil)
-2. "⚡ Misc" sekmesine gidin, "Zoom Hack" bölümü
+2. "⚡ Misc" sekmesine gidin
 3. "🔍 Scan Zoom" düğmesine tıklayın
 4. Ayarlamak için kaydırıcı veya ön ayarları kullanın
 5. Normale dönmek için "↩️ Restore" düğmesine tıklayın
@@ -812,34 +718,25 @@ Kamera yakınlaştırması üzerinde tam kontrol:
 - [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
 - Windows 10/11
 
-### Visual Studio'da Adım Adım
+### Adım Adım
 
 #### 1. Depoyu Klonlayın
 ```bash
-git clone https://github.com/tonhowtf/dungeon-rampage-cheat.git
-cd dungeon-rampage-cheat
+git clone https://github.com/tonhowtf/DungeonRampageCheat.git
+cd DungeonRampageCheat
 ```
 
-#### 2. Visual Studio'da Açın
-```
-1. Visual Studio 2022'yi açın
-2. File → Open → Project/Solution
-3. "DungeonRampageCheat.sln" seçin
+#### 2. Bağımlılıkları Geri Yükleyin
+```bash
+dotnet restore
 ```
 
-#### 3. Paketleri Geri Yükleyin
-```
-1. Solution Explorer → Projeye sağ tıklayın
-2. "Restore NuGet Packages"
-```
-
-#### 4. Debug İçin Derleyin
-```
-1. Build → Build Solution (Ctrl+Shift+B)
-2. Yürütülebilir dosya: bin/Debug/net8.0-windows/DungeonRampageCheat.exe
+#### 3. Debug İçin Derleyin
+```bash
+dotnet build -c Debug
 ```
 
-#### 5. Release İçin Derleyin (Son İkili Dosya)
+#### 4. Release İçin Derleyin (Tek Dosya)
 ```bash
 dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
 ```
@@ -847,22 +744,6 @@ dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=
 Yürütülebilir dosya şurada olacak:
 ```
 bin/Release/net8.0-windows/win-x64/publish/DungeonRampageCheat.exe
-```
-
-### Komut Satırı Üzerinden (CMD/PowerShell)
-```bash
-# Depoyu klonlayın
-git clone https://github.com/tonhowtf/dungeon-rampage-cheat.git
-cd dungeon-rampage-cheat
-
-# Bağımlılıkları geri yükleyin
-dotnet restore
-
-# Derleyin (Debug)
-dotnet build -c Debug
-
-# Derleyin (Release - Tek Dosya)
-dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true
 ```
 
 ---
@@ -936,9 +817,9 @@ BU ARACI KULLANARAK, ŞUNLARDAKİ KABUL EDERSİNİZ:
 - ❓ Soru sorun
 
 ### GitHub
-- 🌟 [Yıldız Bırakın](https://github.com/tonhowtf/dungeon-rampage-cheat)
-- 🐛 [Issue Açın](https://github.com/tonhowtf/dungeon-rampage-cheat/issues)
-- 🔀 [Fork Yapın](https://github.com/tonhowtf/dungeon-rampage-cheat/fork)
+- 🌟 [Yıldız Bırakın](https://github.com/tonhowtf/DungeonRampageCheat)
+- 🐛 [Issue Açın](https://github.com/tonhowtf/DungeonRampageCheat/issues)
+- 🔀 [Fork Yapın](https://github.com/tonhowtf/DungeonRampageCheat/fork)
 
 ---
 
@@ -959,8 +840,7 @@ Bu proje **MIT Lisansı** altında lisanslanmıştır - ayrıntılar için [LICE
 ## 📊 Proje Durumu
 ```
 ✅ WallHack - Çalışıyor
-✅ Speed Hack (Arrow) - Çalışıyor
-✅ Speed Hack (Complete) - Çalışıyor
+✅ Speed Hack (Ranger) - Çalışıyor
 ✅ Zoom Hack - Çalışıyor
 ⏳ Ultimate Hack - Geliştiriliyor
 ```
