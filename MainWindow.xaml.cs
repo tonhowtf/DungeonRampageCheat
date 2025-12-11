@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Threading;
+using Microsoft.Win32;
 
 namespace DungeonRampageCheat
 {
@@ -13,10 +14,14 @@ namespace DungeonRampageCheat
     {
         private WallHackService? _wallHackService;
         private DispatcherTimer? _processMonitor;
-        private bool _speedEnabled = false;
-        private readonly List<IntPtr> _speedAddresses = new();
+        private bool _speedRangerEnabled = false;
+        private bool _speedBerserkerEnabled = false;
+        private readonly List<IntPtr> _speedRangerAddresses = new();
+        private readonly List<IntPtr> _speedBerserkerAddresses = new();
         private readonly List<IntPtr> _zoomAddresses = new();
         private bool _isScanning = false;
+        private InfiniteRangeMelee? _infiniteRangeMelee;
+        private string _gameInstallPath = "";
 
         public MainWindow()
         {
@@ -24,6 +29,155 @@ namespace DungeonRampageCheat
             InitializeLogger();
             LogMessage("🎮 Dungeon Rampage Cheat initialized");
             LogMessage("📝 Created by: tonhowtf");
+            AutoDetectGamePath();
+        }
+
+        private void AutoDetectGamePath()
+        {
+            LogMessage("🔍 Auto-detecting game installation...", Brushes.Yellow);
+
+            string[] possiblePaths = new[]
+            {
+                @"C:\Program Files (x86)\Steam\steamapps\common\DungeonRampage",
+                @"C:\Program Files\Steam\steamapps\common\DungeonRampage",
+                @"D:\Steam\steamapps\common\DungeonRampage",
+                @"D:\SteamLibrary\steamapps\common\DungeonRampage",
+                @"E:\Steam\steamapps\common\DungeonRampage",
+                @"F:\Steam\steamapps\common\DungeonRampage",
+                @"G:\Steam\steamapps\common\DungeonRampage",
+                @"C:\Games\DungeonRampage",
+                @"C:\Program Files\DungeonRampage",
+                @"C:\Program Files (x86)\DungeonRampage"
+            };
+
+            foreach (var path in possiblePaths)
+            {
+                if (TrySetGamePath(path))
+                {
+                    LogMessage($"✅ Game found automatically: {path}", Brushes.Green);
+                    return;
+                }
+            }
+
+            string steamPath = GetSteamInstallPath();
+            if (!string.IsNullOrEmpty(steamPath))
+            {
+                string dungeonPath = System.IO.Path.Combine(steamPath, "steamapps", "common", "DungeonRampage");
+                if (TrySetGamePath(dungeonPath))
+                {
+                    LogMessage($"✅ Game found via Steam registry: {dungeonPath}", Brushes.Green);
+                    return;
+                }
+
+                string[] steamLibraryFolders = GetSteamLibraryFolders(steamPath);
+                foreach (var libraryFolder in steamLibraryFolders)
+                {
+                    string dungeonLibraryPath = System.IO.Path.Combine(libraryFolder, "steamapps", "common", "DungeonRampage");
+                    if (TrySetGamePath(dungeonLibraryPath))
+                    {
+                        LogMessage($"✅ Game found in Steam library: {dungeonLibraryPath}", Brushes.Green);
+                        return;
+                    }
+                }
+            }
+
+            LogMessage("⚠️ Game not found automatically. Use Browse button to locate it manually.", Brushes.Orange);
+            RangeStatusText.Text = "Status: Not found - Browse manually";
+            RangeStatusText.Foreground = Brushes.Orange;
+        }
+
+        private string GetSteamInstallPath()
+        {
+            try
+            {
+                using (var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(@"SOFTWARE\WOW6432Node\Valve\Steam"))
+                {
+                    if (key != null)
+                    {
+                        var installPath = key.GetValue("InstallPath")?.ToString();
+                        if (!string.IsNullOrEmpty(installPath))
+                            return installPath;
+                    }
+                }
+
+                using (var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Valve\Steam"))
+                {
+                    if (key != null)
+                    {
+                        var installPath = key.GetValue("InstallPath")?.ToString();
+                        if (!string.IsNullOrEmpty(installPath))
+                            return installPath;
+                    }
+                }
+            }
+            catch { }
+
+            return string.Empty;
+        }
+
+        private string[] GetSteamLibraryFolders(string steamPath)
+        {
+            var libraries = new List<string>();
+
+            try
+            {
+                string libraryFoldersPath = System.IO.Path.Combine(steamPath, "steamapps", "libraryfolders.vdf");
+
+                if (System.IO.File.Exists(libraryFoldersPath))
+                {
+                    string content = System.IO.File.ReadAllText(libraryFoldersPath);
+
+                    var lines = content.Split('\n');
+                    foreach (var line in lines)
+                    {
+                        if (line.Contains("\"path\""))
+                        {
+                            int startIndex = line.IndexOf("\"", line.IndexOf("\"path\"") + 6);
+                            if (startIndex != -1)
+                            {
+                                int endIndex = line.IndexOf("\"", startIndex + 1);
+                                if (endIndex != -1)
+                                {
+                                    string libraryPath = line.Substring(startIndex + 1, endIndex - startIndex - 1);
+                                    libraryPath = libraryPath.Replace("\\\\", "\\");
+                                    libraries.Add(libraryPath);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch { }
+
+            return libraries.ToArray();
+        }
+
+        private bool TrySetGamePath(string path)
+        {
+            if (string.IsNullOrEmpty(path) || !System.IO.Directory.Exists(path))
+                return false;
+
+            _infiniteRangeMelee = new InfiniteRangeMelee();
+
+            if (_infiniteRangeMelee.SetGamePath(path))
+            {
+                _gameInstallPath = path;
+                GamePathTextBox.Text = path;
+                ApplyRangeButton.IsEnabled = true;
+                RestoreRangeButton.IsEnabled = true;
+                RangeSlider.IsEnabled = true;
+                Range3Button.IsEnabled = true;
+                Range5Button.IsEnabled = true;
+                Range10Button.IsEnabled = true;
+                Range20Button.IsEnabled = true;
+                Range50Button.IsEnabled = true;
+                RangeStatusText.Text = "Status: Ready";
+                RangeStatusText.Foreground = Brushes.LimeGreen;
+                RangeInfoText.Text = "Game detected! Select multiplier and click Apply. Close game before applying!";
+                return true;
+            }
+
+            return false;
         }
 
         private void InitializeLogger()
@@ -134,12 +288,17 @@ namespace DungeonRampageCheat
             MasterToggle.IsChecked = false;
             MapsPanel.Children.Clear();
 
-            _speedEnabled = false;
-            _speedAddresses.Clear();
+            _speedRangerEnabled = false;
+            _speedBerserkerEnabled = false;
+            _speedRangerAddresses.Clear();
+            _speedBerserkerAddresses.Clear();
             _zoomAddresses.Clear();
-            ToggleSpeedButton.IsEnabled = false;
-            ToggleSpeedButton.Content = "▶️ Enable Speed";
-            SpeedStatusText.Text = "Status: Not scanned";
+            ToggleSpeedRangerButton.IsEnabled = false;
+            ToggleSpeedRangerButton.Content = "▶️ Enable Speed";
+            ToggleSpeedBerserkerButton.IsEnabled = false;
+            ToggleSpeedBerserkerButton.Content = "▶️ Enable Speed";
+            SpeedRangerStatusText.Text = "Status: Not scanned";
+            SpeedBerserkerStatusText.Text = "Status: Not scanned";
 
             LogMessage("🔓 Disconnected from process");
         }
@@ -301,7 +460,7 @@ namespace DungeonRampageCheat
             }
         }
 
-        private async void ScanSpeedButton_Click(object sender, RoutedEventArgs e)
+        private async void ScanSpeedRangerButton_Click(object sender, RoutedEventArgs e)
         {
             if (_wallHackService == null)
             {
@@ -317,8 +476,8 @@ namespace DungeonRampageCheat
 
             _isScanning = true;
             LogMessage("🔍 Scanning Speed Hack patterns (Ranger only)...", Brushes.Yellow);
-            SpeedStatusText.Text = "Status: Scanning...";
-            SpeedStatusText.Foreground = Brushes.Yellow;
+            SpeedRangerStatusText.Text = "Status: Scanning...";
+            SpeedRangerStatusText.Foreground = Brushes.Yellow;
 
             try
             {
@@ -329,30 +488,30 @@ namespace DungeonRampageCheat
                     return memoryManager.ScanMemoryPatternAll(pattern);
                 });
 
-                _speedAddresses.Clear();
-                _speedAddresses.AddRange(addresses);
+                _speedRangerAddresses.Clear();
+                _speedRangerAddresses.AddRange(addresses);
 
-                if (_speedAddresses.Count > 0)
+                if (_speedRangerAddresses.Count > 0)
                 {
-                    LogMessage($"✅ Found {_speedAddresses.Count} Speed Hack addresses", Brushes.Green);
-                    SpeedStatusText.Text = $"Status: Ready ({_speedAddresses.Count} addresses found)";
-                    SpeedStatusText.Foreground = Brushes.LimeGreen;
-                    ToggleSpeedButton.IsEnabled = true;
-                    SpeedInfoText.Text = $"Found {_speedAddresses.Count} addresses. Click Enable to activate.";
+                    LogMessage($"✅ Found {_speedRangerAddresses.Count} Speed Hack addresses (Ranger)", Brushes.Green);
+                    SpeedRangerStatusText.Text = $"Status: Ready ({_speedRangerAddresses.Count} addresses found)";
+                    SpeedRangerStatusText.Foreground = Brushes.LimeGreen;
+                    ToggleSpeedRangerButton.IsEnabled = true;
+                    SpeedRangerInfoText.Text = $"Found {_speedRangerAddresses.Count} addresses. Click Enable to activate.";
                 }
                 else
                 {
                     LogMessage("❌ No Speed Hack patterns found. Make sure you're playing as Ranger!", Brushes.Red);
-                    SpeedStatusText.Text = "Status: Not found";
-                    SpeedStatusText.Foreground = Brushes.Red;
-                    SpeedInfoText.Text = "No patterns found. Make sure you're in-game as Ranger class.";
+                    SpeedRangerStatusText.Text = "Status: Not found";
+                    SpeedRangerStatusText.Foreground = Brushes.Red;
+                    SpeedRangerInfoText.Text = "No patterns found. Make sure you're in-game as Ranger class.";
                 }
             }
             catch (Exception ex)
             {
                 LogMessage($"❌ Speed scan error: {ex.Message}", Brushes.Red);
-                SpeedStatusText.Text = "Status: Error";
-                SpeedStatusText.Foreground = Brushes.Red;
+                SpeedRangerStatusText.Text = "Status: Error";
+                SpeedRangerStatusText.Foreground = Brushes.Red;
             }
             finally
             {
@@ -360,9 +519,9 @@ namespace DungeonRampageCheat
             }
         }
 
-        private void ToggleSpeedButton_Click(object sender, RoutedEventArgs e)
+        private void ToggleSpeedRangerButton_Click(object sender, RoutedEventArgs e)
         {
-            if (_wallHackService == null || _speedAddresses.Count == 0)
+            if (_wallHackService == null || _speedRangerAddresses.Count == 0)
             {
                 LogMessage("❌ No addresses found. Scan first!", Brushes.Red);
                 return;
@@ -370,12 +529,12 @@ namespace DungeonRampageCheat
 
             var memoryManager = _wallHackService.MemoryManager;
 
-            if (!_speedEnabled)
+            if (!_speedRangerEnabled)
             {
                 byte[] replacement = MiscConfig.RangerSpeed.ReplacePattern;
                 int successCount = 0;
 
-                foreach (var address in _speedAddresses)
+                foreach (var address in _speedRangerAddresses)
                 {
                     if (memoryManager.WriteMemory(address, replacement))
                     {
@@ -385,13 +544,13 @@ namespace DungeonRampageCheat
 
                 if (successCount > 0)
                 {
-                    _speedEnabled = true;
-                    ToggleSpeedButton.Content = "⏸️ Disable Speed";
-                    ToggleSpeedButton.Background = new SolidColorBrush(Color.FromRgb(0xE8, 0x11, 0x23));
-                    LogMessage($"✅ Speed Hack enabled! ({successCount}/{_speedAddresses.Count} addresses)", Brushes.Green);
-                    SpeedStatusText.Text = "Status: ENABLED";
-                    SpeedStatusText.Foreground = Brushes.LimeGreen;
-                    SpeedInfoText.Text = "Speed hack is active. Movement speed increased!";
+                    _speedRangerEnabled = true;
+                    ToggleSpeedRangerButton.Content = "⏸️ Disable Speed";
+                    ToggleSpeedRangerButton.Background = new SolidColorBrush(Color.FromRgb(0xE8, 0x11, 0x23));
+                    LogMessage($"✅ Speed Hack enabled (Ranger)! ({successCount}/{_speedRangerAddresses.Count} addresses)", Brushes.Green);
+                    SpeedRangerStatusText.Text = "Status: ENABLED";
+                    SpeedRangerStatusText.Foreground = Brushes.LimeGreen;
+                    SpeedRangerInfoText.Text = "Speed hack is active. Movement speed increased!";
                 }
                 else
                 {
@@ -403,7 +562,7 @@ namespace DungeonRampageCheat
                 byte[] original = MiscConfig.RangerSpeed.SearchPattern;
                 int successCount = 0;
 
-                foreach (var address in _speedAddresses)
+                foreach (var address in _speedRangerAddresses)
                 {
                     if (memoryManager.WriteMemory(address, original))
                     {
@@ -413,13 +572,140 @@ namespace DungeonRampageCheat
 
                 if (successCount > 0)
                 {
-                    _speedEnabled = false;
-                    ToggleSpeedButton.Content = "▶️ Enable Speed";
-                    ToggleSpeedButton.Background = new SolidColorBrush(Color.FromRgb(0x2D, 0x7D, 0x2D));
-                    LogMessage($"✅ Speed Hack disabled! ({successCount}/{_speedAddresses.Count} addresses)", Brushes.Green);
-                    SpeedStatusText.Text = "Status: Disabled";
-                    SpeedStatusText.Foreground = Brushes.Gray;
-                    SpeedInfoText.Text = "Speed hack is inactive. Click Enable to activate.";
+                    _speedRangerEnabled = false;
+                    ToggleSpeedRangerButton.Content = "▶️ Enable Speed";
+                    ToggleSpeedRangerButton.Background = new SolidColorBrush(Color.FromRgb(0x2D, 0x7D, 0x2D));
+                    LogMessage($"✅ Speed Hack disabled (Ranger)! ({successCount}/{_speedRangerAddresses.Count} addresses)", Brushes.Green);
+                    SpeedRangerStatusText.Text = "Status: Disabled";
+                    SpeedRangerStatusText.Foreground = Brushes.Gray;
+                    SpeedRangerInfoText.Text = "Speed hack is inactive. Click Enable to activate.";
+                }
+                else
+                {
+                    LogMessage("❌ Failed to disable Speed Hack", Brushes.Red);
+                }
+            }
+        }
+
+        private async void ScanSpeedBerserkerButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_wallHackService == null)
+            {
+                LogMessage("❌ Not connected! Attach to process first.", Brushes.Red);
+                return;
+            }
+
+            if (_isScanning)
+            {
+                LogMessage("⚠️ Already scanning, please wait...", Brushes.Orange);
+                return;
+            }
+
+            _isScanning = true;
+            LogMessage("🔍 Scanning Speed Hack patterns (Berserker only)...", Brushes.Yellow);
+            SpeedBerserkerStatusText.Text = "Status: Scanning...";
+            SpeedBerserkerStatusText.Foreground = Brushes.Yellow;
+
+            try
+            {
+                var addresses = await Task.Run(() =>
+                {
+                    var memoryManager = _wallHackService.MemoryManager;
+                    byte[] pattern = MiscConfig.BerserkerSpeed.SearchPattern;
+                    return memoryManager.ScanMemoryPatternAll(pattern);
+                });
+
+                _speedBerserkerAddresses.Clear();
+                _speedBerserkerAddresses.AddRange(addresses);
+
+                if (_speedBerserkerAddresses.Count > 0)
+                {
+                    LogMessage($"✅ Found {_speedBerserkerAddresses.Count} Speed Hack addresses (Berserker)", Brushes.Green);
+                    SpeedBerserkerStatusText.Text = $"Status: Ready ({_speedBerserkerAddresses.Count} addresses found)";
+                    SpeedBerserkerStatusText.Foreground = Brushes.LimeGreen;
+                    ToggleSpeedBerserkerButton.IsEnabled = true;
+                    SpeedBerserkerInfoText.Text = $"Found {_speedBerserkerAddresses.Count} addresses. Click Enable to activate.";
+                }
+                else
+                {
+                    LogMessage("❌ No Speed Hack patterns found. Make sure you're playing as Berserker!", Brushes.Red);
+                    SpeedBerserkerStatusText.Text = "Status: Not found";
+                    SpeedBerserkerStatusText.Foreground = Brushes.Red;
+                    SpeedBerserkerInfoText.Text = "No patterns found. Make sure you're in-game as Berserker class.";
+                }
+            }
+            catch (Exception ex)
+            {
+                LogMessage($"❌ Speed scan error: {ex.Message}", Brushes.Red);
+                SpeedBerserkerStatusText.Text = "Status: Error";
+                SpeedBerserkerStatusText.Foreground = Brushes.Red;
+            }
+            finally
+            {
+                _isScanning = false;
+            }
+        }
+
+        private void ToggleSpeedBerserkerButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_wallHackService == null || _speedBerserkerAddresses.Count == 0)
+            {
+                LogMessage("❌ No addresses found. Scan first!", Brushes.Red);
+                return;
+            }
+
+            var memoryManager = _wallHackService.MemoryManager;
+
+            if (!_speedBerserkerEnabled)
+            {
+                byte[] replacement = MiscConfig.BerserkerSpeed.ReplacePattern;
+                int successCount = 0;
+
+                foreach (var address in _speedBerserkerAddresses)
+                {
+                    if (memoryManager.WriteMemory(address, replacement))
+                    {
+                        successCount++;
+                    }
+                }
+
+                if (successCount > 0)
+                {
+                    _speedBerserkerEnabled = true;
+                    ToggleSpeedBerserkerButton.Content = "⏸️ Disable Speed";
+                    ToggleSpeedBerserkerButton.Background = new SolidColorBrush(Color.FromRgb(0xE8, 0x11, 0x23));
+                    LogMessage($"✅ Speed Hack enabled (Berserker)! ({successCount}/{_speedBerserkerAddresses.Count} addresses)", Brushes.Green);
+                    SpeedBerserkerStatusText.Text = "Status: ENABLED";
+                    SpeedBerserkerStatusText.Foreground = Brushes.LimeGreen;
+                    SpeedBerserkerInfoText.Text = "Speed hack is active. Movement speed increased!";
+                }
+                else
+                {
+                    LogMessage("❌ Failed to enable Speed Hack", Brushes.Red);
+                }
+            }
+            else
+            {
+                byte[] original = MiscConfig.BerserkerSpeed.SearchPattern;
+                int successCount = 0;
+
+                foreach (var address in _speedBerserkerAddresses)
+                {
+                    if (memoryManager.WriteMemory(address, original))
+                    {
+                        successCount++;
+                    }
+                }
+
+                if (successCount > 0)
+                {
+                    _speedBerserkerEnabled = false;
+                    ToggleSpeedBerserkerButton.Content = "▶️ Enable Speed";
+                    ToggleSpeedBerserkerButton.Background = new SolidColorBrush(Color.FromRgb(0x2D, 0x7D, 0x2D));
+                    LogMessage($"✅ Speed Hack disabled (Berserker)! ({successCount}/{_speedBerserkerAddresses.Count} addresses)", Brushes.Green);
+                    SpeedBerserkerStatusText.Text = "Status: Disabled";
+                    SpeedBerserkerStatusText.Foreground = Brushes.Gray;
+                    SpeedBerserkerInfoText.Text = "Speed hack is inactive. Click Enable to activate.";
                 }
                 else
                 {
@@ -533,6 +819,189 @@ namespace DungeonRampageCheat
                 if (double.TryParse(tagValue, out double zoomValue))
                 {
                     ZoomSlider.Value = zoomValue;
+                }
+            }
+        }
+
+        private void BrowseGamePathButton_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new OpenFileDialog
+            {
+                Title = "Select Dungeon Rampage executable",
+                Filter = "Executable files (*.exe)|*.exe|All files (*.*)|*.*",
+                FileName = "DungeonRampage.exe"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                string exePath = dialog.FileName;
+                string gamePath = System.IO.Path.GetDirectoryName(exePath);
+
+                if (!string.IsNullOrEmpty(gamePath))
+                {
+                    if (TrySetGamePath(gamePath))
+                    {
+                        LogMessage($"✅ Game path set manually: {gamePath}", Brushes.Green);
+                    }
+                    else
+                    {
+                        LogMessage("❌ Invalid game path. AttackTimeline.json not found!", Brushes.Red);
+                        RangeStatusText.Text = "Status: Invalid path";
+                        RangeStatusText.Foreground = Brushes.Red;
+                        MessageBox.Show("Invalid game path!\n\nMake sure you selected the Dungeon Rampage.exe file.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+            }
+        }
+
+        private void ApplyRangeButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_infiniteRangeMelee == null || string.IsNullOrEmpty(_gameInstallPath))
+            {
+                LogMessage("❌ Game path not set! Browse for game folder first.", Brushes.Red);
+                return;
+            }
+
+            var result = MessageBox.Show(
+                "⚠️ IMPORTANT:\n\n" +
+                "1. Close Dungeon Rampage completely\n" +
+                "2. Apply the range modification\n" +
+                "3. Reopen the game\n\n" +
+                "Make sure the game is CLOSED before continuing!\n\n" +
+                "Continue?",
+                "Warning - Close Game First",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning
+            );
+
+            if (result != MessageBoxResult.Yes)
+                return;
+
+            ApplyRangeButton.IsEnabled = false;
+            LogMessage("🎯 Applying Infinite Range hack...", Brushes.Yellow);
+            RangeStatusText.Text = "Status: Applying...";
+            RangeStatusText.Foreground = Brushes.Yellow;
+
+            try
+            {
+                double multiplier = RangeSlider.Value;
+                int modified = _infiniteRangeMelee.ApplyInfiniteRange(multiplier);
+
+                if (modified > 0)
+                {
+                    LogMessage($"✅ Infinite Range applied! Modified {modified} values with {multiplier}x multiplier", Brushes.Green);
+                    RangeStatusText.Text = $"Status: Applied ({multiplier}x)";
+                    RangeStatusText.Foreground = Brushes.LimeGreen;
+                    RangeInfoText.Text = $"Range multiplier {multiplier}x active! Reopen game to apply changes.";
+                    MessageBox.Show(
+                        $"✅ Success!\n\n" +
+                        $"Modified {modified} values with {multiplier}x multiplier.\n\n" +
+                        $"Now:\n" +
+                        $"1. Open Dungeon Rampage\n" +
+                        $"2. Enter a dungeon\n" +
+                        $"3. Test your melee range!\n\n" +
+                        $"Backup files created automatically.",
+                        "Success",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information
+                    );
+                }
+                else
+                {
+                    LogMessage("❌ Failed to apply Infinite Range. Check if game files exist.", Brushes.Red);
+                    RangeStatusText.Text = "Status: Failed";
+                    RangeStatusText.Foreground = Brushes.Red;
+                    MessageBox.Show("Failed to apply Infinite Range!\n\nMake sure:\n- Game is closed\n- Game files exist\n- You have write permissions", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                LogMessage($"❌ Error applying range: {ex.Message}", Brushes.Red);
+                RangeStatusText.Text = "Status: Error";
+                RangeStatusText.Foreground = Brushes.Red;
+            }
+            finally
+            {
+                ApplyRangeButton.IsEnabled = true;
+            }
+        }
+
+        private void RestoreRangeButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_infiniteRangeMelee == null || string.IsNullOrEmpty(_gameInstallPath))
+            {
+                LogMessage("❌ Game path not set!", Brushes.Red);
+                return;
+            }
+
+            var result = MessageBox.Show(
+                "Restore original range values?\n\n" +
+                "Make sure the game is CLOSED!",
+                "Confirm Restore",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question
+            );
+
+            if (result != MessageBoxResult.Yes)
+                return;
+
+            RestoreRangeButton.IsEnabled = false;
+            LogMessage("↩️ Restoring original range values...", Brushes.Yellow);
+
+            try
+            {
+                int restored = _infiniteRangeMelee.RestoreOriginal();
+
+                if (restored > 0)
+                {
+                    LogMessage($"✅ Restored {restored} files to original values", Brushes.Green);
+                    RangeStatusText.Text = "Status: Restored";
+                    RangeStatusText.Foreground = Brushes.Gray;
+                    RangeInfoText.Text = "Original values restored. Reopen game for changes to take effect.";
+                    RangeSlider.Value = 10.0;
+                    MessageBox.Show($"✅ Restored!\n\n{restored} files restored to original.\n\nReopen the game for changes to take effect.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    LogMessage("⚠️ No backup files found to restore.", Brushes.Orange);
+                    MessageBox.Show("No backup files found!\n\nBackup files are created when you first apply the hack.", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+            }
+            catch (Exception ex)
+            {
+                LogMessage($"❌ Error restoring: {ex.Message}", Brushes.Red);
+            }
+            finally
+            {
+                RestoreRangeButton.IsEnabled = true;
+            }
+        }
+
+        private void RangeSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (RangeValueText == null)
+                return;
+
+            double value = Math.Round(e.NewValue, 1);
+            RangeValueText.Text = $"Multiplier: {value}x";
+
+            if (value <= 5)
+                RangeValueText.Foreground = Brushes.LimeGreen;
+            else if (value <= 15)
+                RangeValueText.Foreground = Brushes.Yellow;
+            else if (value <= 30)
+                RangeValueText.Foreground = Brushes.Orange;
+            else
+                RangeValueText.Foreground = Brushes.Red;
+        }
+
+        private void RangePreset_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.Tag is string tagValue)
+            {
+                if (double.TryParse(tagValue, out double rangeValue))
+                {
+                    RangeSlider.Value = rangeValue;
                 }
             }
         }
